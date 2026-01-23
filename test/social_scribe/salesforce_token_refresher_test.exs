@@ -23,22 +23,17 @@ defmodule SocialScribe.SalesforceTokenRefresherTest do
       assert result.token == credential.token
     end
 
-    test "credential with nil expires_at triggers refresh attempt" do
+    test "credential with expired token triggers refresh attempt" do
       user = user_fixture()
 
-      {:ok, credential} =
-        SocialScribe.Accounts.create_user_credential(%{
+      # Create credential that expired 1 hour ago (will trigger refresh)
+      credential =
+        salesforce_credential_fixture(%{
           user_id: user.id,
-          provider: "salesforce",
-          uid: "005test#{System.unique_integer([:positive])}",
-          token: "test_token",
-          refresh_token: "test_refresh_token",
-          expires_at: nil,
-          email: "test@example.com",
-          instance_url: "https://na1.salesforce.com"
+          expires_at: DateTime.add(DateTime.utc_now(), -3600, :second)
         })
 
-      # This will try to refresh since expires_at is nil
+      # This will try to refresh since token is expired
       # Will fail without real credentials, but tests the code path
       result = SalesforceTokenRefresher.ensure_valid_token(credential)
 

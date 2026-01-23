@@ -327,18 +327,17 @@ defmodule SocialScribe.MeetingsTest do
 
       {:ok, prompt} = Meetings.generate_prompt_for_meeting(meeting)
 
-      assert prompt =~ """
-             ## Meeting Info:
-             title: #{meeting.title}
-             date: #{meeting.recorded_at}
-             duration: #{meeting.duration_seconds} seconds
+      # Normalize line endings for cross-platform compatibility
+      normalized_prompt = String.replace(prompt, "\r\n", "\n")
 
-             ### Participants:
-             #{meeting_participant.name} (Host)
-             #{meeting_participant_2.name} (Participant)
-
-             ### Transcript:
-             """
+      assert normalized_prompt =~ "## Meeting Info:\n"
+      assert normalized_prompt =~ "title: #{meeting.title}\n"
+      assert normalized_prompt =~ "date: #{meeting.recorded_at}\n"
+      assert normalized_prompt =~ "duration: #{meeting.duration_seconds} seconds\n"
+      assert normalized_prompt =~ "### Participants:\n"
+      assert normalized_prompt =~ "#{meeting_participant.name} (Host)\n"
+      assert normalized_prompt =~ "#{meeting_participant_2.name} (Participant)\n"
+      assert normalized_prompt =~ "### Transcript:\n"
     end
   end
 end
