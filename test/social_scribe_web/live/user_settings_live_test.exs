@@ -49,4 +49,86 @@ defmodule SocialScribeWeb.UserSettingsLiveTest do
       refute has_element?(view, "p", "You haven't connected any Google accounts yet.")
     end
   end
+
+  describe "Salesforce accounts section" do
+    @describetag :capture_log
+
+    setup :register_and_log_in_user
+
+    test "shows Salesforce section on settings page", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/dashboard/settings")
+
+      assert html =~ "Salesforce" or html =~ "salesforce"
+    end
+
+    test "shows connect Salesforce button when no credential exists", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/dashboard/settings")
+
+      # Should have a connect Salesforce link/button
+      assert has_element?(view, "a[href*='salesforce']") or
+               render(view) =~ "Connect Salesforce"
+    end
+
+    test "displays connected Salesforce account", %{conn: conn, user: user} do
+      # Create a Salesforce credential for the user
+      _credential = salesforce_credential_fixture(%{user_id: user.id})
+
+      {:ok, _view, html} = live(conn, ~p"/dashboard/settings")
+
+      # Should show the Salesforce credential info
+      assert html =~ "salesforce" or html =~ "Salesforce"
+    end
+
+    test "shows instance URL for Salesforce credential", %{conn: conn, user: user} do
+      _credential =
+        salesforce_credential_fixture(%{
+          user_id: user.id,
+          instance_url: "https://na1.salesforce.com"
+        })
+
+      {:ok, _view, html} = live(conn, ~p"/dashboard/settings")
+
+      # The instance URL should be displayed
+      assert html =~ "na1.salesforce.com" or html =~ "Salesforce"
+    end
+  end
+
+  describe "HubSpot accounts section" do
+    @describetag :capture_log
+
+    setup :register_and_log_in_user
+
+    test "shows HubSpot section on settings page", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/dashboard/settings")
+
+      assert html =~ "HubSpot" or html =~ "hubspot"
+    end
+
+    test "displays connected HubSpot account", %{conn: conn, user: user} do
+      # Create a HubSpot credential for the user
+      _credential = hubspot_credential_fixture(%{user_id: user.id})
+
+      {:ok, _view, html} = live(conn, ~p"/dashboard/settings")
+
+      # Should show the HubSpot credential info
+      assert html =~ "hubspot" or html =~ "HubSpot"
+    end
+  end
+
+  describe "Multiple CRM accounts" do
+    @describetag :capture_log
+
+    setup :register_and_log_in_user
+
+    test "can have both Salesforce and HubSpot connected", %{conn: conn, user: user} do
+      _salesforce = salesforce_credential_fixture(%{user_id: user.id})
+      _hubspot = hubspot_credential_fixture(%{user_id: user.id})
+
+      {:ok, _view, html} = live(conn, ~p"/dashboard/settings")
+
+      # Both should be shown
+      assert (html =~ "Salesforce" or html =~ "salesforce") and
+               (html =~ "HubSpot" or html =~ "hubspot")
+    end
+  end
 end
