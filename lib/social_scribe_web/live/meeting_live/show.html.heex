@@ -109,6 +109,53 @@
       </div>
     </div>
 
+    <div :if={@salesforce_credential} class="bg-white shadow-xl rounded-lg p-6 md:p-8">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-semibold text-slate-700">Salesforce Integration</h2>
+          <p class="text-sm text-slate-500 mt-1">
+            Update CRM contacts with information from this meeting
+          </p>
+        </div>
+        <.link
+          patch={~p"/dashboard/meetings/#{@meeting}/salesforce"}
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#00A1E0] hover:bg-[#0082B4] transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M10.006 5.415a4.195 4.195 0 013.045-1.306c1.56 0 2.954.9 3.69 2.205.63-.3 1.35-.45 2.1-.45 2.85 0 5.159 2.34 5.159 5.22s-2.31 5.22-5.16 5.22c-.45 0-.87-.06-1.29-.165a3.903 3.903 0 01-3.375 1.965 3.84 3.84 0 01-2.175-.66 4.663 4.663 0 01-4.005 2.295c-2.58 0-4.665-2.1-4.665-4.695 0-.975.3-1.875.81-2.625a4.158 4.158 0 01-.48-1.965c0-2.34 1.905-4.23 4.245-4.23 1.2 0 2.295.51 3.105 1.35z"/>
+          </svg>
+          Update Salesforce Contact
+        </.link>
+      </div>
+    </div>
+
+    <div :if={@hubspot_credential || @salesforce_credential} class="bg-white shadow-xl rounded-lg p-6 md:p-8">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-2xl font-semibold text-slate-700">CRM Assistant</h2>
+          <p class="text-sm text-slate-500 mt-1">
+            Ask questions about your contacts in
+            <%= cond do %>
+              <% @hubspot_credential && @salesforce_credential -> %>
+                HubSpot or Salesforce
+              <% @hubspot_credential -> %>
+                HubSpot
+              <% @salesforce_credential -> %>
+                Salesforce
+              <% true -> %>
+                your CRM
+            <% end %>
+          </p>
+        </div>
+      </div>
+      <.live_component
+        module={SocialScribeWeb.MeetingLive.CrmChatComponent}
+        id="crm-chat"
+        hubspot_credential={@hubspot_credential}
+        salesforce_credential={@salesforce_credential}
+      />
+    </div>
+
     <.transcript_content meeting_transcript={@meeting.meeting_transcript} />
     <div class="bg-white shadow-xl rounded-lg p-6 md:p-8">
       <h2 class="text-2xl font-semibold mb-4 text-slate-700">Attendees</h2>
@@ -169,3 +216,18 @@
     modal_id="hubspot-modal-wrapper"
   />
 </.hubspot_modal>
+
+<.salesforce_modal
+  :if={@live_action == :salesforce && @salesforce_credential}
+  id="salesforce-modal-wrapper"
+  show
+  on_cancel={JS.patch(~p"/dashboard/meetings/#{@meeting}")}
+>
+  <.live_component
+    module={SocialScribeWeb.MeetingLive.SalesforceModalComponent}
+    id="salesforce-modal"
+    meeting={@meeting}
+    credential={@salesforce_credential}
+    modal_id="salesforce-modal-wrapper"
+  />
+</.salesforce_modal>
