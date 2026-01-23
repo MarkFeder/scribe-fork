@@ -138,6 +138,60 @@
 
   <div class="bg-white  shadow-xl rounded-lg p-6 md:p-8">
     <h2 class="text-2xl font-semibold mb-6 text-slate-700 ">
+      Connected Salesforce Accounts
+    </h2>
+
+    <%= if not Enum.empty?(@salesforce_accounts) do %>
+      <ul class="space-y-4 mb-8">
+        <li
+          :for={account <- @salesforce_accounts}
+          class="flex justify-between items-center p-4 bg-slate-50  rounded-md shadow"
+        >
+          <div>
+            <p class="font-medium text-slate-700 ">
+              Salesforce Account
+            </p>
+            <p class="text-sm text-slate-500 ">
+              UID: {account.uid}
+              <%= if account.email do %>
+                ({account.email})
+              <% end %>
+            </p>
+          </div>
+          <!-- Future: Add a "Disconnect" button here -->
+        </li>
+      </ul>
+    <% else %>
+      <p class="mb-8 text-slate-600 ">
+        You haven't connected any Salesforce accounts yet.
+      </p>
+    <% end %>
+
+    <div>
+      <.link
+        href={~p"/auth/salesforce"}
+        method="get"
+        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-[#00A1E0] hover:bg-[#0082B4] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00A1E0] "
+      >
+        <svg
+          class="-ml-1 mr-3 h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M10.006 5.415a4.195 4.195 0 013.045-1.306c1.56 0 2.954.9 3.69 2.205.63-.3 1.35-.45 2.1-.45 2.85 0 5.159 2.34 5.159 5.22s-2.31 5.22-5.16 5.22c-.45 0-.87-.06-1.29-.165a3.903 3.903 0 01-3.375 1.965 3.84 3.84 0 01-2.175-.66 4.663 4.663 0 01-4.005 2.295c-2.58 0-4.665-2.1-4.665-4.695 0-.975.3-1.875.81-2.625a4.158 4.158 0 01-.48-1.965c0-2.34 1.905-4.23 4.245-4.23 1.2 0 2.295.51 3.105 1.35z"/>
+        </svg>
+        <%= if Enum.empty?(@salesforce_accounts) do %>
+          Connect Salesforce
+        <% else %>
+          Connect another Salesforce Account
+        <% end %>
+      </.link>
+    </div>
+  </div>
+
+  <div class="bg-white  shadow-xl rounded-lg p-6 md:p-8">
+    <h2 class="text-2xl font-semibold mb-6 text-slate-700 ">
       Connected Facebook Account
     </h2>
 
