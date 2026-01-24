@@ -7,8 +7,6 @@ defmodule SocialScribeWeb.MeetingLive.CrmChatComponent do
 
   import SocialScribeWeb.ModalComponents, only: [avatar: 1]
 
-  alias SocialScribe.AIContentGeneratorApi
-
   @impl true
   def render(assigns) do
     ~H"""
