@@ -1,6 +1,6 @@
 defmodule Ueberauth.Strategy.Salesforce.OAuth do
   @moduledoc """
-  OAuth2 for Salesforce.
+  OAuth2 for Salesforce with PKCE support.
 
   Add `client_id` and `client_secret` to your configuration:
 
@@ -17,6 +17,22 @@ defmodule Ueberauth.Strategy.Salesforce.OAuth do
     authorize_url: "/services/oauth2/authorize",
     token_url: "/services/oauth2/token"
   ]
+
+  @doc """
+  Generates a PKCE code verifier (43-128 characters, URL-safe).
+  """
+  def generate_code_verifier do
+    :crypto.strong_rand_bytes(32)
+    |> Base.url_encode64(padding: false)
+  end
+
+  @doc """
+  Generates a PKCE code challenge from the verifier using S256 method.
+  """
+  def generate_code_challenge(code_verifier) do
+    :crypto.hash(:sha256, code_verifier)
+    |> Base.url_encode64(padding: false)
+  end
 
   @doc """
   Construct a client for requests to Salesforce.
@@ -41,6 +57,7 @@ defmodule Ueberauth.Strategy.Salesforce.OAuth do
 
   @doc """
   Provides the authorize url for the request phase of Ueberauth.
+  Includes PKCE code_challenge parameter.
   """
   def authorize_url!(params \\ [], opts \\ []) do
     opts
@@ -127,8 +144,11 @@ defmodule Ueberauth.Strategy.Salesforce.OAuth do
 
   @impl OAuth2.Strategy
   def get_token(client, params, headers) do
+    # Salesforce requires client_id and client_secret in the request body
     client
     |> put_param(:grant_type, "authorization_code")
+    |> put_param(:client_id, client.client_id)
+    |> put_param(:client_secret, client.client_secret)
     |> put_header("Content-Type", "application/x-www-form-urlencoded")
     |> OAuth2.Strategy.AuthCode.get_token(params, headers)
   end

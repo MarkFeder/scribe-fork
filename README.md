@@ -302,7 +302,7 @@ The "Ask Anything" feature allows users to ask questions about CRM contacts dire
 ### Salesforce OAuth Integration
 
 * **Custom Ueberauth Strategy:** Implemented in `lib/ueberauth/strategy/salesforce.ex`
-* **OAuth 2.0 Flow:** Handles authorization code flow with Salesforce's OAuth endpoints
+* **OAuth 2.0 Flow with PKCE:** Handles authorization code flow with PKCE (Proof Key for Code Exchange) for enhanced security, as required by Salesforce Connected Apps
 * **Sandbox Support:** Supports both production and sandbox environments via `SALESFORCE_SANDBOX=true` environment variable
 * **Credential Storage:** Credentials stored in `user_credentials` table with `provider: "salesforce"`, including `token`, `refresh_token`, `expires_at`, and `instance_url`
 * **Token Refresh:** Automatic token refresh with retry on API calls

@@ -195,8 +195,11 @@ defmodule SocialScribeWeb.AuthController do
   end
 
   def callback(conn, _params) do
-    Logger.error("OAuth Login")
-    Logger.error(conn)
+    Logger.error("OAuth Login Failed")
+    # Log the actual failure details from Ueberauth
+    if failure = conn.assigns[:ueberauth_failure] do
+      Logger.error("Ueberauth failure: #{inspect(failure)}")
+    end
 
     conn
     |> put_flash(:error, "There was an error signing you in. Please try again.")

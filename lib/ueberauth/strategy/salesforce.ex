@@ -25,28 +25,48 @@ defmodule Ueberauth.Strategy.Salesforce do
 
   @doc """
   Handles initial request for Salesforce authentication.
+  Uses PKCE for enhanced security.
   """
   def handle_request!(conn) do
     scopes = conn.params["scope"] || option(conn, :default_scope)
 
+    # Generate PKCE code verifier and challenge
+    code_verifier = Ueberauth.Strategy.Salesforce.OAuth.generate_code_verifier()
+    code_challenge = Ueberauth.Strategy.Salesforce.OAuth.generate_code_challenge(code_verifier)
+
     opts =
-      [scope: scopes, redirect_uri: callback_url(conn)]
+      [
+        scope: scopes,
+        redirect_uri: callback_url(conn),
+        code_challenge: code_challenge,
+        code_challenge_method: "S256"
+      ]
       |> with_optional(:prompt, conn)
       |> with_param(:prompt, conn)
       |> with_state_param(conn)
 
-    redirect!(conn, Ueberauth.Strategy.Salesforce.OAuth.authorize_url!(opts))
+    # Store the code_verifier in session for use in callback
+    conn
+    |> Plug.Conn.put_session(:salesforce_code_verifier, code_verifier)
+    |> redirect!(Ueberauth.Strategy.Salesforce.OAuth.authorize_url!(opts))
   end
 
   @doc """
   Handles the callback from Salesforce.
   """
   def handle_callback!(%Plug.Conn{params: %{"code" => code}} = conn) do
-    opts = [redirect_uri: callback_url(conn)]
+    # Retrieve the code_verifier from session
+    code_verifier = Plug.Conn.get_session(conn, :salesforce_code_verifier)
 
-    case Ueberauth.Strategy.Salesforce.OAuth.get_access_token([code: code], opts) do
+    opts = [redirect_uri: callback_url(conn)]
+    params = [code: code, code_verifier: code_verifier]
+
+    case Ueberauth.Strategy.Salesforce.OAuth.get_access_token(params, opts) do
       {:ok, token} ->
-        fetch_user(conn, token)
+        # Clear the code_verifier from session
+        conn
+        |> Plug.Conn.delete_session(:salesforce_code_verifier)
+        |> fetch_user(token)
 
       {:error, {error_code, error_description}} ->
         set_errors!(conn, [error(error_code, error_description)])
