@@ -152,6 +152,76 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 ---
 
+## 🚀 Deployment
+
+The application is deployed on Fly.io and can be accessed at:
+
+**Live URL:** https://scribe-fork-wild-resonance-5534.fly.dev/
+
+### Deploy to Fly.io
+
+1. **Install Fly CLI:**
+   ```bash
+   curl -L https://fly.io/install.sh | sh
+   ```
+
+2. **Login to Fly.io:**
+   ```bash
+   fly auth login
+   ```
+
+3. **Launch the app (first time):**
+   ```bash
+   fly launch --no-deploy
+   ```
+
+4. **Set up PostgreSQL Database:**
+   - Use Fly Postgres or an external provider like Supabase
+   - Set the `DATABASE_URL` secret
+
+5. **Configure Secrets:**
+   ```bash
+   fly secrets set \
+     DATABASE_URL="your_database_url" \
+     RECALL_API_KEY="your_recall_api_key" \
+     RECALL_REGION="us-west-2" \
+     GEMINI_API_KEY="your_gemini_api_key" \
+     GOOGLE_CLIENT_ID="your_google_client_id" \
+     GOOGLE_CLIENT_SECRET="your_google_client_secret" \
+     HUBSPOT_CLIENT_ID="your_hubspot_client_id" \
+     HUBSPOT_CLIENT_SECRET="your_hubspot_client_secret" \
+     SALESFORCE_CLIENT_ID="your_salesforce_client_id" \
+     SALESFORCE_CLIENT_SECRET="your_salesforce_client_secret" \
+     SALESFORCE_SANDBOX="true"
+   ```
+
+6. **Deploy:**
+   ```bash
+   fly deploy
+   ```
+
+### Continuous Deployment
+
+The repository includes a GitHub Actions workflow (`.github/workflows/fly-deploy.yml`) that automatically deploys to Fly.io when pushing to the `master` branch.
+
+To enable:
+1. Generate a Fly.io deploy token: `fly tokens create deploy -x 999999h`
+2. Add it as a GitHub secret named `FLY_API_TOKEN`
+
+### Post-Deployment: Update OAuth Redirect URIs
+
+After deploying, update the redirect URIs in your OAuth provider settings:
+
+- **Google Cloud Console:** `https://your-app.fly.dev/auth/google/callback`
+- **HubSpot Developer Portal:** `https://your-app.fly.dev/auth/hubspot/callback`
+- **Salesforce Connected App:** `https://your-app.fly.dev/auth/salesforce/callback`
+- **LinkedIn Developer Portal:** `https://your-app.fly.dev/auth/linkedin/callback`
+- **Facebook Developer Portal:** `https://your-app.fly.dev/auth/facebook/callback`
+
+Also ensure the **Google Calendar API** is enabled in your Google Cloud project.
+
+---
+
 ## ⚙️ Functionality Deep Dive
 
 * **Connect & Sync:** Users log in with Google. The "Settings" page allows connecting multiple Google accounts, plus LinkedIn and Facebook accounts. For Facebook, after initial connection, users are guided to select a Page for posting. Calendars are synced to a database to populate the dashboard with upcoming events.

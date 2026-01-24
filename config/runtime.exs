@@ -126,6 +126,18 @@ if config_env() == :prod do
   config :ueberauth, Ueberauth.Strategy.Google.OAuth,
     redirect_uri: "https://" <> host <> "/auth/google/callback"
 
+  config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
+    redirect_uri: "https://" <> host <> "/auth/linkedin/callback"
+
+  config :ueberauth, Ueberauth.Strategy.Facebook.OAuth,
+    redirect_uri: "https://" <> host <> "/auth/facebook/callback"
+
+  config :ueberauth, Ueberauth.Strategy.Hubspot.OAuth,
+    redirect_uri: "https://" <> host <> "/auth/hubspot/callback"
+
+  config :ueberauth, Ueberauth.Strategy.Salesforce.OAuth,
+    redirect_uri: "https://" <> host <> "/auth/salesforce/callback"
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key
