@@ -1,5 +1,27 @@
 .env
 .envrc
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# Session files
+SESSION_SUMMARY.md
+
+# Local development scripts
+*.bat
+*.ps1
+check_env.exs
+create_test_data.exs
+fix_transcript.exs
+
+# Windows artifacts
+nul
  
 # The directory Mix will write compiled artifacts to.
 /_build/
