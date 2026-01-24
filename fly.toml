@@ -12,6 +12,7 @@ primary_region = 'cdg'
 [env]
   PHX_HOST = 'scribe-fork-wild-resonance-5534.fly.dev'
   PORT = '8080'
+  PHX_SERVER = 'true'
 
 [http_service]
   internal_port = 8080
