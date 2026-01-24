@@ -129,30 +129,13 @@
       </div>
     </div>
 
-    <div :if={@hubspot_credential || @salesforce_credential} class="bg-white shadow-xl rounded-lg p-6 md:p-8">
-      <div class="flex justify-between items-center mb-4">
-        <div>
-          <h2 class="text-2xl font-semibold text-slate-700">CRM Assistant</h2>
-          <p class="text-sm text-slate-500 mt-1">
-            Ask questions about your contacts in
-            <%= cond do %>
-              <% @hubspot_credential && @salesforce_credential -> %>
-                HubSpot or Salesforce
-              <% @hubspot_credential -> %>
-                HubSpot
-              <% @salesforce_credential -> %>
-                Salesforce
-              <% true -> %>
-                your CRM
-            <% end %>
-          </p>
-        </div>
-      </div>
+    <div :if={@hubspot_credential || @salesforce_credential}>
       <.live_component
-        module={SocialScribeWeb.MeetingLive.CrmChatComponent}
-        id="crm-chat"
+        module={SocialScribeWeb.MeetingLive.AskAnythingComponent}
+        id="ask-anything"
         hubspot_credential={@hubspot_credential}
         salesforce_credential={@salesforce_credential}
+        meeting={@meeting}
       />
     </div>
 

@@ -22,7 +22,7 @@ defmodule SocialScribeWeb.CrmChatComponentTest do
     test "renders CRM chat section on meeting page", %{conn: conn, meeting: meeting} do
       {:ok, _view, html} = live(conn, ~p"/dashboard/meetings/#{meeting.id}")
 
-      assert html =~ "CRM Assistant" or html =~ "crm-chat"
+      assert html =~ "Ask Anything" or html =~ "ask-anything"
     end
 
     test "has a chat input field", %{conn: conn, meeting: meeting} do
@@ -50,7 +50,7 @@ defmodule SocialScribeWeb.CrmChatComponentTest do
     test "renders CRM chat section on meeting page with HubSpot", %{conn: conn, meeting: meeting} do
       {:ok, _view, html} = live(conn, ~p"/dashboard/meetings/#{meeting.id}")
 
-      assert html =~ "CRM Assistant" or html =~ "crm-chat"
+      assert html =~ "Ask Anything" or html =~ "ask-anything"
     end
   end
 

@@ -25,4 +25,18 @@ Hooks.ScrollToBottom = {
     }
 }
 
+Hooks.TextareaAutoResize = {
+    mounted() {
+        this.resize()
+        this.el.addEventListener("input", () => this.resize())
+    },
+    updated() {
+        this.resize()
+    },
+    resize() {
+        this.el.style.height = "auto"
+        this.el.style.height = Math.min(this.el.scrollHeight, 120) + "px"
+    }
+}
+
 export default Hooks

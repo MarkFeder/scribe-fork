@@ -162,21 +162,35 @@ defmodule SocialScribe.AIContentGenerator do
   end
 
   @impl SocialScribe.AIContentGeneratorApi
-  def answer_crm_question(question, contact, crm_type) do
+  def answer_crm_question(question, contact, crm_type, meeting_context \\ nil) do
     contact_info = format_contact_for_prompt(contact)
 
-    prompt = """
-    You are a helpful AI assistant that answers questions about CRM contacts.
+    meeting_info =
+      if meeting_context do
+        """
 
-    The user has asked a question about a #{crm_type} contact. Answer based only on the information provided below.
+        Meeting Context:
+        - Meeting Title: #{meeting_context[:title]}
+        - Recorded At: #{meeting_context[:recorded_at]}
+        #{if meeting_context[:transcript], do: "\nMeeting Transcript:\n#{meeting_context[:transcript]}", else: ""}
+        """
+      else
+        ""
+      end
+
+    prompt = """
+    You are a helpful AI assistant that answers questions about CRM contacts and meeting data.
+
+    The user has asked a question about a #{crm_type} contact. Answer based on the contact information and meeting context provided below.
     If the information needed to answer the question is not available, say so politely.
 
     Contact Information:
     #{contact_info}
+    #{meeting_info}
 
     User's Question: #{question}
 
-    Please provide a helpful, concise answer.
+    Please provide a helpful, concise answer. If you reference information from the meeting, mention it naturally in your response.
     """
 
     call_gemini(prompt)

@@ -216,12 +216,12 @@ defmodule SocialScribeWeb.MeetingLive.Show do
     end
   end
 
-  # CRM Chat handlers
+  # Ask Anything / CRM Chat handlers
   @impl true
   def handle_info({:search_crm_contacts, query, component_id}, socket) do
     contacts = search_all_crm_contacts(socket, query)
 
-    send_update(SocialScribeWeb.MeetingLive.CrmChatComponent,
+    send_update(SocialScribeWeb.MeetingLive.AskAnythingComponent,
       id: component_id,
       contact_suggestions: contacts
     )
@@ -233,32 +233,53 @@ defmodule SocialScribeWeb.MeetingLive.Show do
   def handle_info({:ask_crm_question, question, contact, component_id}, socket) do
     alias SocialScribe.AIContentGeneratorApi
 
-    case AIContentGeneratorApi.answer_crm_question(question, contact, contact.crm_type) do
-      {:ok, answer} ->
+    meeting_context = get_meeting_context(socket.assigns.meeting)
+
+    case AIContentGeneratorApi.answer_crm_question(question, contact, contact.crm_type, meeting_context) do
+      {:ok, %{answer: answer, sources: sources}} ->
         assistant_message = %{
           role: "assistant",
           content: answer,
           contact: contact,
           crm_type: contact.crm_type,
-          timestamp: DateTime.utc_now()
+          timestamp: DateTime.utc_now(),
+          sources: sources
         }
 
-        send_update(SocialScribeWeb.MeetingLive.CrmChatComponent,
+        send_update(SocialScribeWeb.MeetingLive.AskAnythingComponent,
           id: component_id,
           loading: false,
           messages_append: assistant_message
         )
 
-      {:error, reason} ->
-        error_message = %{
-          role: "system",
-          content: "Sorry, I couldn't answer that question: #{inspect(reason)}",
-          contact: nil,
-          crm_type: nil,
-          timestamp: DateTime.utc_now()
+      {:ok, answer} when is_binary(answer) ->
+        # Handle plain string response for backward compatibility
+        assistant_message = %{
+          role: "assistant",
+          content: answer,
+          contact: contact,
+          crm_type: contact.crm_type,
+          timestamp: DateTime.utc_now(),
+          sources: [%{type: :meeting, title: socket.assigns.meeting.title, date: socket.assigns.meeting.recorded_at}]
         }
 
-        send_update(SocialScribeWeb.MeetingLive.CrmChatComponent,
+        send_update(SocialScribeWeb.MeetingLive.AskAnythingComponent,
+          id: component_id,
+          loading: false,
+          messages_append: assistant_message
+        )
+
+      {:error, _reason} ->
+        error_message = %{
+          role: "assistant",
+          content: "Sorry, I couldn't answer that question. Please try rephrasing or selecting a different contact.",
+          contact: nil,
+          crm_type: nil,
+          timestamp: DateTime.utc_now(),
+          sources: nil
+        }
+
+        send_update(SocialScribeWeb.MeetingLive.AskAnythingComponent,
           id: component_id,
           loading: false,
           messages_append: error_message
@@ -266,6 +287,33 @@ defmodule SocialScribeWeb.MeetingLive.Show do
     end
 
     {:noreply, socket}
+  end
+
+  defp get_meeting_context(meeting) do
+    %{
+      title: meeting.title,
+      recorded_at: meeting.recorded_at,
+      transcript: get_transcript_text(meeting)
+    }
+  end
+
+  defp get_transcript_text(meeting) do
+    case meeting.meeting_transcript do
+      nil -> nil
+      transcript ->
+        case Map.get(transcript.content || %{}, "data") do
+          nil -> nil
+          data when is_list(data) ->
+            data
+            |> Enum.map(fn segment ->
+              speaker = segment["speaker"] || "Unknown"
+              words = Enum.map_join(segment["words"] || [], " ", & &1["text"])
+              "#{speaker}: #{words}"
+            end)
+            |> Enum.join("\n")
+          _ -> nil
+        end
+    end
   end
 
   defp search_all_crm_contacts(socket, query) do

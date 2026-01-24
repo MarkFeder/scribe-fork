@@ -7,7 +7,7 @@ defmodule SocialScribe.AIContentGeneratorApi do
   @callback generate_automation(map(), map()) :: {:ok, String.t()} | {:error, any()}
   @callback generate_hubspot_suggestions(map()) :: {:ok, list(map())} | {:error, any()}
   @callback generate_salesforce_suggestions(map()) :: {:ok, list(map())} | {:error, any()}
-  @callback answer_crm_question(String.t(), map(), String.t()) :: {:ok, String.t()} | {:error, any()}
+  @callback answer_crm_question(String.t(), map(), String.t(), map() | nil) :: {:ok, String.t()} | {:error, any()}
 
   def generate_follow_up_email(meeting) do
     impl().generate_follow_up_email(meeting)
@@ -25,8 +25,8 @@ defmodule SocialScribe.AIContentGeneratorApi do
     impl().generate_salesforce_suggestions(meeting)
   end
 
-  def answer_crm_question(question, contact, crm_type) do
-    impl().answer_crm_question(question, contact, crm_type)
+  def answer_crm_question(question, contact, crm_type, meeting_context \\ nil) do
+    impl().answer_crm_question(question, contact, crm_type, meeting_context)
   end
 
   defp impl do
