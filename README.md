@@ -137,7 +137,7 @@ Follow these steps to get SocialScribe running on your local machine.
         * `SALESFORCE_CLIENT_ID`: Your Salesforce Connected App Client ID.
         * `SALESFORCE_CLIENT_SECRET`: Your Salesforce Connected App Client Secret.
         * `SALESFORCE_REDIRECT_URI`: `"http://localhost:4000/auth/salesforce/callback"`
-        * `SALESFORCE_SANDBOX`: Set to `"true"` for Salesforce sandbox environments.
+        * `SALESFORCE_SANDBOX`: Set to `"false"` for production/Developer Edition, `"true"` for sandbox environments.
 
 4.  **Start the Phoenix Server:**
     ```bash
@@ -192,7 +192,7 @@ The application is deployed on Fly.io and can be accessed at:
      HUBSPOT_CLIENT_SECRET="your_hubspot_client_secret" \
      SALESFORCE_CLIENT_ID="your_salesforce_client_id" \
      SALESFORCE_CLIENT_SECRET="your_salesforce_client_secret" \
-     SALESFORCE_SANDBOX="true"
+     SALESFORCE_SANDBOX="false"
    ```
 
 6. **Deploy:**
@@ -320,7 +320,7 @@ The "Ask Anything" feature allows users to ask questions about CRM contacts dire
 SALESFORCE_CLIENT_ID=your_client_id
 SALESFORCE_CLIENT_SECRET=your_client_secret
 SALESFORCE_REDIRECT_URI=http://localhost:4000/auth/salesforce/callback
-SALESFORCE_SANDBOX=true  # Set to true for sandbox environments
+SALESFORCE_SANDBOX=false  # Set to "true" only for sandbox environments
 ```
 
 ---
