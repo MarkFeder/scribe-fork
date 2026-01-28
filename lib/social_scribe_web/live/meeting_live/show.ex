@@ -235,6 +235,9 @@ defmodule SocialScribeWeb.MeetingLive.Show do
 
     meeting_context = get_meeting_context(socket.assigns.meeting)
 
+    # Fetch CRM notes for context if available
+    meeting_context = add_crm_notes_to_context(meeting_context, contact, socket)
+
     case AIContentGeneratorApi.answer_crm_question(question, contact, contact.crm_type, meeting_context) do
       {:ok, %{answer: answer, sources: sources}} ->
         assistant_message = %{
@@ -295,6 +298,37 @@ defmodule SocialScribeWeb.MeetingLive.Show do
       recorded_at: meeting.recorded_at,
       transcript: get_transcript_text(meeting)
     }
+  end
+
+  defp add_crm_notes_to_context(meeting_context, contact, socket) do
+    case contact.crm_type do
+      "hubspot" ->
+        if socket.assigns.hubspot_credential do
+          case HubspotApi.get_contact_notes(socket.assigns.hubspot_credential, contact.id) do
+            {:ok, notes} when notes != [] ->
+              Map.put(meeting_context, :crm_notes, format_notes_for_context(notes))
+
+            _ ->
+              meeting_context
+          end
+        else
+          meeting_context
+        end
+
+      _ ->
+        # Salesforce notes support can be added later
+        meeting_context
+    end
+  end
+
+  defp format_notes_for_context(notes) do
+    notes
+    |> Enum.filter(& &1)
+    |> Enum.map(fn note ->
+      timestamp = if note.timestamp, do: " (#{note.timestamp})", else: ""
+      "#{note.body}#{timestamp}"
+    end)
+    |> Enum.join("\n\n---\n\n")
   end
 
   defp get_transcript_text(meeting) do

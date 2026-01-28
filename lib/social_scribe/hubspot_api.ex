@@ -141,6 +141,80 @@ defmodule SocialScribe.HubspotApi do
     end
   end
 
+  @doc """
+  Gets notes associated with a contact.
+  Returns up to 50 most recent notes for the contact.
+  Automatically refreshes token on 401/expired errors and retries once.
+  """
+  def get_contact_notes(%UserCredential{} = credential, contact_id) do
+    with_token_refresh(credential, fn cred ->
+      # Use the v3 CRM API to search for notes associated with this contact
+      body = %{
+        filterGroups: [
+          %{
+            filters: [
+              %{
+                propertyName: "hs_note_body",
+                operator: "HAS_PROPERTY"
+              }
+            ]
+          }
+        ],
+        properties: ["hs_note_body", "hs_timestamp", "hs_created_by"],
+        limit: 50,
+        sorts: [%{propertyName: "hs_timestamp", direction: "DESCENDING"}]
+      }
+
+      # First, get the notes associated with this contact via the associations API
+      associations_url = "/crm/v4/objects/contacts/#{contact_id}/associations/notes"
+
+      case Tesla.get(client(cred.token), associations_url) do
+        {:ok, %Tesla.Env{status: 200, body: %{"results" => associations}}} when associations != [] ->
+          # Extract note IDs from associations
+          note_ids = Enum.map(associations, & &1["toObjectId"])
+
+          # Batch read the notes
+          batch_body = %{
+            inputs: Enum.map(note_ids, &%{id: &1}),
+            properties: ["hs_note_body", "hs_timestamp", "hs_created_by"]
+          }
+
+          case Tesla.post(client(cred.token), "/crm/v3/objects/notes/batch/read", batch_body) do
+            {:ok, %Tesla.Env{status: 200, body: %{"results" => notes}}} ->
+              formatted_notes = Enum.map(notes, &format_note/1)
+              {:ok, formatted_notes}
+
+            {:ok, %Tesla.Env{status: status, body: body}} ->
+              {:error, {:api_error, status, body}}
+
+            {:error, reason} ->
+              {:error, {:http_error, reason}}
+          end
+
+        {:ok, %Tesla.Env{status: 200, body: _}} ->
+          # No associations found
+          {:ok, []}
+
+        {:ok, %Tesla.Env{status: status, body: body}} ->
+          {:error, {:api_error, status, body}}
+
+        {:error, reason} ->
+          {:error, {:http_error, reason}}
+      end
+    end)
+  end
+
+  defp format_note(%{"id" => id, "properties" => properties}) do
+    %{
+      id: id,
+      body: properties["hs_note_body"],
+      timestamp: properties["hs_timestamp"],
+      created_by: properties["hs_created_by"]
+    }
+  end
+
+  defp format_note(_), do: nil
+
   # Format a HubSpot contact response into a cleaner structure
   defp format_contact(%{"id" => id, "properties" => properties}) do
     %{

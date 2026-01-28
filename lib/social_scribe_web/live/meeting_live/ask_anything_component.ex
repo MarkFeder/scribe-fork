@@ -181,7 +181,7 @@ defmodule SocialScribeWeb.MeetingLive.AskAnythingComponent do
           </div>
 
           <!-- Input Area -->
-          <div class="mx-4 mb-4 border border-slate-200 rounded-xl p-3 relative">
+          <div class="mx-4 mb-4 border border-slate-200 rounded-xl p-3 relative focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition-colors">
             <!-- @ Add context button (shows when no @ in input) -->
             <button
               :if={!@show_contact_picker && !@show_inline_picker && !String.contains?(@input_value, "🗣️")}
@@ -601,19 +601,12 @@ defmodule SocialScribeWeb.MeetingLive.AskAnythingComponent do
   # Helper Functions
 
   defp format_session_date(datetime) do
-    now = DateTime.utc_now()
-
     time =
       datetime
       |> Calendar.strftime("%I:%M%P")
       |> String.replace(~r/^0/, "")
 
-    date =
-      if Date.compare(DateTime.to_date(datetime), DateTime.to_date(now)) == :eq do
-        "Today"
-      else
-        Calendar.strftime(datetime, "%B %d, %Y")
-      end
+    date = Calendar.strftime(datetime, "%B %d, %Y")
 
     "#{time} – #{date}"
   end

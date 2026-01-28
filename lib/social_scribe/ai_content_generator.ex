@@ -178,19 +178,31 @@ defmodule SocialScribe.AIContentGenerator do
         ""
       end
 
+    crm_notes_info =
+      if meeting_context && meeting_context[:crm_notes] do
+        """
+
+        CRM Notes (from #{crm_type}):
+        #{meeting_context[:crm_notes]}
+        """
+      else
+        ""
+      end
+
     prompt = """
     You are a helpful AI assistant that answers questions about CRM contacts and meeting data.
 
-    The user has asked a question about a #{crm_type} contact. Answer based on the contact information and meeting context provided below.
+    The user has asked a question about a #{crm_type} contact. Answer based on the contact information, CRM notes, and meeting context provided below.
     If the information needed to answer the question is not available, say so politely.
 
     Contact Information:
     #{contact_info}
+    #{crm_notes_info}
     #{meeting_info}
 
     User's Question: #{question}
 
-    Please provide a helpful, concise answer. If you reference information from the meeting, mention it naturally in your response.
+    Please provide a helpful, concise answer. If you reference information from the CRM notes or meeting, mention it naturally in your response.
     """
 
     call_gemini(prompt)

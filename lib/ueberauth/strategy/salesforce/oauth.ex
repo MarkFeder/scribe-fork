@@ -145,11 +145,24 @@ defmodule Ueberauth.Strategy.Salesforce.OAuth do
   @impl OAuth2.Strategy
   def get_token(client, params, headers) do
     # Salesforce requires client_id and client_secret in the request body
-    client
-    |> put_param(:grant_type, "authorization_code")
-    |> put_param(:client_id, client.client_id)
-    |> put_param(:client_secret, client.client_secret)
-    |> put_header("Content-Type", "application/x-www-form-urlencoded")
-    |> OAuth2.Strategy.AuthCode.get_token(params, headers)
+    # PKCE: code_verifier must also be included in the token request
+    {code_verifier, params} = Keyword.pop(params, :code_verifier)
+
+    client =
+      client
+      |> put_param(:grant_type, "authorization_code")
+      |> put_param(:client_id, client.client_id)
+      |> put_param(:client_secret, client.client_secret)
+      |> put_header("Content-Type", "application/x-www-form-urlencoded")
+
+    # Add code_verifier if present (PKCE flow)
+    client =
+      if code_verifier do
+        put_param(client, :code_verifier, code_verifier)
+      else
+        client
+      end
+
+    OAuth2.Strategy.AuthCode.get_token(client, params, headers)
   end
 end
