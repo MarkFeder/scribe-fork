@@ -148,23 +148,6 @@ defmodule SocialScribe.HubspotApi do
   """
   def get_contact_notes(%UserCredential{} = credential, contact_id) do
     with_token_refresh(credential, fn cred ->
-      # Use the v3 CRM API to search for notes associated with this contact
-      body = %{
-        filterGroups: [
-          %{
-            filters: [
-              %{
-                propertyName: "hs_note_body",
-                operator: "HAS_PROPERTY"
-              }
-            ]
-          }
-        ],
-        properties: ["hs_note_body", "hs_timestamp", "hs_created_by"],
-        limit: 50,
-        sorts: [%{propertyName: "hs_timestamp", direction: "DESCENDING"}]
-      }
-
       # First, get the notes associated with this contact via the associations API
       associations_url = "/crm/v4/objects/contacts/#{contact_id}/associations/notes"
 
